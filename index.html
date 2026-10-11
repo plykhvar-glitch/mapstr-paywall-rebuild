@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<title>Paywall Audit — Mapstr</title>
+<link rel="icon" href="img/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: only light;
+  /* ---- Mapstr's in-app system, read from their live iOS onboarding, paywall and App Store screens ---- */
+  --ms-bg:#FFFFFF; --ms-card:#FFFFFF; --ms-soft:#F6F6F8; --ms-line:#ECECEF; --ms-ink:#111113; --ms-ink2:#3A3A3F; --ms-mute:#8E8E93;
+  --ms-yellow:#FFC323; --ms-yellow2:#FFC222; --ms-yellow3:#FFE7A6; --ms-orange:#FFA322; --ms-pink:#EE5DA6;
+  --ms-blue:#3B82F6; --ms-sel:#F3F8FF; --ms-selb:#BFD6FB; --ms-tag:#111113; --ms-follow2:#F0F0F2;
+  --r-ctl:12px; --r-card:14px;
+  /* ---- the shell, in Mapstr's own identity: white page, sunflower yellow, near-black ink, DM Sans ---- */
+  --bg:#FFFDF6; --bg2:#FFF6DC; --surf:#FFFFFF; --pill:#FFF1C7; --pill2:#FFE69C;
+  --ink:#141414; --ink2:#46464C; --ink3:#7A7A82; --hair:rgba(20,20,20,.09); --hair2:rgba(20,20,20,.16);
+  --accent:#FFC323; --accent-lift:#B07A00; --accent-ink:#9A6A00;
+  --panel-ink:#141414; --panel-muted:#7A7A82; --panel-line:#F1EDE2;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);font-family:'DM Sans',-apple-system,sans-serif;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input{font:inherit}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:70;background:rgba(255,253,246,.9);backdrop-filter:blur(18px) saturate(150%);border-bottom:1px solid var(--hair)}
+.nav-in{padding:0 28px;height:68px;display:flex;align-items:center;gap:14px}
+.nav-in img{height:30px;width:auto;display:block}
+.nav-in .lb{font:600 14px/1 'DM Sans',sans-serif;color:var(--ink2);padding-left:14px;border-left:1px solid var(--hair2)}
+.nav-links{margin-left:auto;display:flex;gap:4px;background:var(--pill);border-radius:999px;padding:4px}
+.nav-links button{display:flex;align-items:center;gap:9px;height:42px;padding:0 20px 0 7px;border-radius:999px;font:700 15px/1 'DM Sans',sans-serif;color:var(--ink2);transition:background .18s,color .18s}
+.nav-links button .n{width:28px;height:28px;border-radius:50%;background:#fff;color:var(--accent-ink);display:grid;place-items:center;font-size:12.5px;font-weight:800}
+.nav-links button.on{background:var(--accent);color:#fff}
+.nav-links button.on .n{background:rgba(255,255,255,.3);color:#fff}
+@media(max-width:560px){.nav-in{padding:0 12px}.nav-in .lb{display:none}.nav-in img{height:24px}.nav-links button{height:38px;padding:0 13px 0 6px;font-size:14px}.nav-links button .n{width:25px;height:25px}}
+
+.view{display:none}.view.on{display:block}
+.wrap{max-width:1080px;margin:0 auto;padding:0 32px}
+@media(max-width:700px){.wrap{padding:0 20px}}
+
+/* ============ overview ============ */
+.hero{position:relative;overflow:hidden;background:linear-gradient(160deg,#FFB21E 0%,#FFC323 45%,#FFD45A 100%);color:#fff;padding:64px 0 0}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:30px;align-items:end}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr}.hero-art{display:none}}
+.hero .logo{height:44px;width:auto;display:block;margin-bottom:34px;filter:brightness(0) invert(1)}
+.eyebrow{font:800 12px/1 'DM Sans',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.85);margin-bottom:18px}
+.hero h1{font:900 66px/1.02 'DM Sans',sans-serif;letter-spacing:-.035em;text-transform:uppercase;margin:0 0 22px}
+.hero .lede{font-size:20px;line-height:1.5;max-width:560px;color:#fff}
+.hero .meta{margin-top:20px;font-size:13px;color:rgba(255,255,255,.85)}
+.hero .meta b{color:#fff}
+.herobtns{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap;padding-bottom:64px}
+.pillbtn{display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 26px;border-radius:14px;font:800 16px/1 'DM Sans',sans-serif}
+.pillbtn.white{background:#fff;color:var(--ink)}
+.pillbtn.dark{background:var(--ink);color:#fff}
+.pillbtn.yel{background:var(--accent);color:#fff}
+.hero-art{position:relative;height:520px;align-self:end}
+.hero-art img.a{position:absolute;right:-30px;bottom:-40px;width:430px}
+.hero-art img.b{position:absolute;right:215px;bottom:70px;width:215px;filter:drop-shadow(0 20px 30px rgba(120,70,0,.25))}
+@media(max-width:820px){.hero h1{font-size:42px}.hero .lede{font-size:17px}}
+.stats{display:flex;margin:56px auto 0;max-width:760px;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.stat{flex:1;padding:26px 12px;text-align:center;border-left:1px solid var(--hair)}
+.stat:first-child{border-left:0}
+.stat b{display:block;font:900 34px/1.05 'DM Sans',sans-serif;letter-spacing:-.03em}
+.stat span{display:block;font-size:12.5px;color:var(--ink3);margin-top:7px;line-height:1.35}
+@media(max-width:700px){.stat b{font-size:22px}.stat{padding:18px 6px}}
+.fb{max-width:760px;margin:0 auto;padding:30px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:26px;text-align:left}
+@media(max-width:700px){.fb{grid-template-columns:1fr;gap:18px}}
+.fb-k{grid-column:1/-1;font:800 11px/1 'DM Sans',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);text-align:center;margin-bottom:-6px}
+.fb-i{display:flex;gap:12px}
+.fb-i .tick{width:20px;height:20px;flex:none;margin-top:2px;border-radius:50%;background:var(--accent);display:grid;place-items:center}
+.fb-i .tick svg{width:11px;height:11px;stroke:#fff;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.fb-i p{font-size:14.5px;line-height:1.55;color:var(--ink2)}
+.fb-i p b{color:var(--ink)}
+.sec{padding:92px 0}
+.sec-k{font:800 12px/1 'DM Sans',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-ink);margin-bottom:18px}
+.sec h2{font:900 42px/1.08 'DM Sans',sans-serif;letter-spacing:-.03em;margin:0 0 22px;max-width:840px}
+.sec h2 mark{background:linear-gradient(transparent 58%,var(--ms-yellow3) 58%);color:inherit;padding:0 2px}
+.sec p.body{font-size:17px;line-height:1.66;color:var(--ink2);max-width:660px;margin:0 0 18px}
+.sec p.body b{color:var(--ink);font-weight:700}
+@media(max-width:820px){.sec h2{font-size:30px}.sec{padding:60px 0}}
+.notes{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:36px;max-width:860px}
+@media(max-width:760px){.notes{grid-template-columns:1fr}}
+.note{background:var(--surf);border:1px solid var(--hair);border-radius:20px;padding:24px 26px}
+.note h4{font:800 17px/1.3 'DM Sans',sans-serif;margin-bottom:8px}
+.note p{font-size:14.5px;line-height:1.6;color:var(--ink2)}
+.ideas{margin-top:14px;display:flex;flex-direction:column;gap:12px}
+.idea{display:grid;grid-template-columns:56px 1fr 210px;gap:22px;align-items:start;padding:24px 26px 24px 22px;background:var(--surf);border-radius:20px;text-align:left;width:100%;border:1px solid var(--hair);transition:transform .15s,box-shadow .15s,border-color .15s}
+.idea:hover{transform:translateY(-1px);border-color:var(--accent);box-shadow:0 14px 30px -20px rgba(255,163,34,.6)}
+@media(max-width:780px){.idea{grid-template-columns:44px 1fr;gap:14px;padding:20px 18px}}
+.idea .ic{width:52px;height:52px;border-radius:16px;background:var(--bg2);display:grid;place-items:center;position:relative;font-size:26px;line-height:1}
+.idea .ic .no{position:absolute;right:-7px;top:-7px;width:23px;height:23px;border-radius:50%;background:var(--accent);color:#fff;font:800 12px/23px 'DM Sans',sans-serif;text-align:center;box-shadow:0 0 0 2.5px var(--surf)}
+@media(max-width:780px){.idea .ic{width:42px;height:42px;border-radius:13px;font-size:21px}}
+.idea h3{font:800 21px/1.25 'DM Sans',sans-serif;letter-spacing:-.02em;margin-bottom:7px}
+.idea p{font-size:15px;line-height:1.6;color:var(--ink2);max-width:560px}
+.idea .seeit{display:inline-block;margin-top:12px;font:800 13.5px/1 'DM Sans',sans-serif;color:var(--accent-ink)}
+.idea .out{text-align:right;padding-top:2px}
+@media(max-width:780px){.idea .out{grid-column:2;text-align:left;padding-top:4px}}
+.idea .out b{display:block;font:900 22px/1.15 'DM Sans',sans-serif;letter-spacing:-.02em;color:var(--accent-lift);white-space:nowrap}
+.idea .out span{display:block;font-size:10.5px;color:var(--ink3);margin-top:5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+.band{background:linear-gradient(160deg,#FFB21E,#FFC323);color:#fff;border-radius:28px;padding:42px 46px;margin-top:44px;display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+@media(max-width:700px){.band{padding:28px 24px}}
+.band .lab{font:800 11.5px/1 'DM Sans',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.85);margin-bottom:12px}
+.band .txt{flex:1;min-width:240px}
+.band .txt p{font-size:17px;line-height:1.6}
+.band .nums{display:flex;gap:34px}
+.band .nums b{display:block;font:900 46px/1.05 'DM Sans',sans-serif;letter-spacing:-.03em;text-transform:uppercase}
+.band .nums span{display:block;font-size:11px;color:rgba(255,255,255,.9);letter-spacing:.06em;text-transform:uppercase;font-weight:800;margin-top:4px}
+.cta-row{display:flex;justify-content:center;align-items:center;gap:22px;margin-top:54px;flex-wrap:wrap}
+.qr{display:flex;align-items:center;gap:16px;background:var(--surf);border-radius:20px;padding:12px 20px 12px 12px;border:1px solid var(--hair)}
+.qr img{width:135px;height:135px;image-rendering:pixelated;display:block}
+.qr b{display:block;font:800 15px/1.3 'DM Sans',sans-serif}
+.qr span{display:block;font-size:13px;color:var(--ink3);line-height:1.45;max-width:170px;margin-top:3px}
+@media(max-width:1080px){.qr{display:none}}
+.foot{border-top:1px solid var(--hair);padding:36px 0 70px;font-size:12.5px;line-height:1.6;color:var(--ink3)}
+
+/* ============ prototype view ============ */
+.stage{display:grid;grid-template-columns:minmax(470px,1fr) minmax(420px,560px);align-items:start;min-height:calc(100vh - 68px)}
+@media(max-width:1060px){.stage{grid-template-columns:minmax(0,1fr)}.panelcol{position:static!important;max-height:none!important;border-left:0!important;border-top:1px solid var(--hair)}}
+.phonecol{padding:24px 24px 44px;display:flex;flex-direction:column;align-items:center;gap:14px;position:relative;background:linear-gradient(180deg,#FFE9A8 0,#FFF6DC 360px,var(--bg) 680px)}
+.panelcol{border-left:1px solid var(--hair);background:#fff;position:sticky;top:68px;max-height:calc(100vh - 68px);overflow-y:auto}
+.tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.seg{display:inline-flex;background:#fff;border:1px solid var(--hair2);border-radius:20px;padding:3px;gap:2px}
+.seg button{padding:6px 12px;border-radius:16px;font:700 12.5px/1 'DM Sans',sans-serif;color:var(--ink2)}
+.seg button.on{background:var(--ink);color:#fff}
+.seg.demo button{display:flex;align-items:center;gap:6px}
+.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;max-width:440px}
+.chip{height:36px;padding:0 15px;border-radius:999px;background:#fff;border:1px solid var(--hair2);font:700 13.5px/1 'DM Sans',sans-serif;color:var(--ink2);display:inline-flex;align-items:center;gap:7px}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip.offer{border-color:#FFD777;color:#9A6A00}
+.chip.offer.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.demo-cap{width:412px;max-width:100%;background:var(--ink);color:#fff;border-radius:14px;padding:0 16px;font-size:14px;line-height:1.4;overflow:hidden;max-height:0;transition:max-height .25s,padding .25s}
+.demo-cap.on{max-height:90px;padding:11px 16px 13px}
+.demo-cap .bar{height:3px;background:rgba(255,255,255,.18);border-radius:2px;margin-top:9px;overflow:hidden}
+.demo-cap .bar i{display:block;height:100%;width:0;background:var(--accent)}
+.finger{position:absolute;z-index:200;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:rgba(59,130,246,.3);border:2px solid rgba(255,255,255,.95);box-shadow:0 4px 14px rgba(0,0,0,.25);pointer-events:none;opacity:0;transition:left .38s cubic-bezier(.4,0,.2,1),top .38s cubic-bezier(.4,0,.2,1),transform .12s,opacity .2s}
+.finger.on{opacity:1}.finger.press{transform:scale(.72)}
+
+.phone{position:relative;isolation:isolate;width:412px;height:866px;flex:none;background:#000;border:11px solid #000;border-radius:46px;box-shadow:0 0 0 1.5px #F2DC9C,0 34px 70px -24px rgba(120,80,0,.35)}
+.phone-in{position:absolute;inset:0;border-radius:36px;overflow:hidden;background:var(--ms-bg);color-scheme:only light}
+.island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#000;border-radius:18px;z-index:60}
+.sbar{position:absolute;top:0;left:0;right:0;height:47px;z-index:55;display:flex;align-items:center;justify-content:space-between;padding:4px 30px 0 44px;font:600 16px/1 -apple-system,'SF Pro Text',Inter,sans-serif;color:#000;pointer-events:none}
+.sbar .g{display:flex;gap:6px;align-items:center}
+.homebar{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#111;z-index:96}
+
+/* ---- Mapstr screens, prefixed scr- ---- */
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;color:var(--ms-ink);font-family:-apple-system,'SF Pro Text',Inter,sans-serif;background:var(--ms-bg);transform:translateX(100%);transition:transform .38s cubic-bezier(.32,.72,0,1)}
+.scr.on{transform:none}.scr.past{transform:translateX(-24%)}.scr.nofx{transition:none}
+.scr-top{flex:none;height:96px;position:relative;padding:58px 20px 0}
+.scr-back{position:absolute;left:16px;top:56px;width:28px;height:28px;display:grid;place-items:center}
+.scr-prog{width:116px;height:5px;border-radius:3px;background:#F1F1F3;margin:9px auto 0;overflow:hidden}
+.scr-prog i{display:block;height:100%;background:var(--ms-yellow);border-radius:3px}
+.scr-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;position:relative;padding:0 20px 16px}
+.scr-body::-webkit-scrollbar{display:none}
+.scr-body>*{flex-shrink:0}
+.scr-foot{flex:none;padding:10px 20px 34px;background:var(--ms-bg);position:relative;z-index:5}
+.scr-note{font-size:12.5px;color:var(--ms-mute);text-align:center;margin-bottom:10px}
+.scr-cta{width:100%;height:52px;border-radius:var(--r-ctl);background:var(--ms-yellow);color:#fff;font:700 17px/1 -apple-system,'SF Pro Text',Inter,sans-serif}
+.scr-cta[disabled]{background:#F1F1F3;color:#B8B8BE}
+.scr-h{font-size:23px;line-height:1.2;font-weight:700;text-align:center;letter-spacing:-.01em;margin-top:6px}
+.scr-sub{font-size:13.5px;line-height:1.35;color:var(--ms-mute);text-align:center;margin:8px 10px 0}
+/* intent quiz */
+.scr-opts{margin-top:26px;display:flex;flex-direction:column;gap:10px}
+.scr-opt{display:flex;align-items:center;gap:14px;height:58px;padding:0 16px;border-radius:var(--r-ctl);border:1.5px solid var(--ms-line);background:var(--ms-card);text-align:left;font-size:15px;font-weight:500;color:var(--ms-ink)}
+.scr-opt .em{font-size:20px;width:26px;text-align:center}
+.scr-opt .bx{margin-left:auto;width:22px;height:22px;border-radius:6px;border:1.5px solid #D9D9DE;display:grid;place-items:center}
+.scr-opt.on{border-color:var(--ms-selb);background:var(--ms-sel)}
+.scr-opt.on .bx{background:var(--ms-blue);border-color:var(--ms-blue)}
+.scr-opt.on .bx::after{content:'';width:9px;height:5px;border-left:2.2px solid #fff;border-bottom:2.2px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+/* must-have maps */
+.scr-maps{margin-top:20px}
+.scr-mrow{display:flex;align-items:center;gap:12px;padding:10px 0}
+.scr-av{width:50px;height:50px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;position:relative}
+.scr-av i{position:absolute;right:-2px;bottom:-2px;width:18px;height:18px;border-radius:50%;background:var(--ms-yellow);border:2px solid #fff;display:grid;place-items:center;font-style:normal;font-size:9px}
+.scr-mrow .tx{flex:1;min-width:0}
+.scr-mrow b{display:block;font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scr-mrow .tx span{display:block;font-size:12px;color:var(--ms-mute)}
+.scr-fol{height:30px;padding:0 13px;border-radius:8px;background:var(--ms-yellow);color:#fff;font-size:13px;font-weight:700;flex:none}
+.scr-fol.on{background:var(--ms-follow2);color:var(--ms-ink2)}
+/* paywall */
+.scr-pw .scr-body{padding:0}
+.scr-x{position:absolute;top:56px;right:16px;z-index:30;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.75);display:grid;place-items:center}
+.scr-car{position:relative}
+.scr-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.scr-track::-webkit-scrollbar{display:none}
+.scr-slide{flex:none;width:100%;scroll-snap-align:start;height:366px;position:relative}
+.scr-wave{position:absolute;left:0;right:0;top:0;height:196px}
+.scr-wave svg{position:absolute;inset:0;width:100%;height:100%}
+.scr-art{position:absolute;left:50%;top:44px;transform:translateX(-50%);width:230px;height:130px}
+.scr-plogo{display:flex;align-items:center;justify-content:center;gap:5px;font:800 31px/1 'DM Sans',sans-serif;letter-spacing:-.03em}
+.scr-plogo img{height:34px;width:auto}
+.scr-plogo span{color:var(--ms-pink)}
+.scr-s0 .scr-plogo{position:absolute;left:0;right:0;top:214px}
+.scr-s0 h2{position:absolute;left:30px;right:30px;top:262px;font-size:22px;line-height:1.2;font-weight:600;text-align:center;color:var(--ms-ink2)}
+.scr-mini{display:flex;align-items:center;justify-content:center;gap:4px;font:800 19px/1 'DM Sans',sans-serif;padding-top:58px}
+.scr-mini img{height:22px}.scr-mini span{color:var(--ms-pink)}
+.scr-feat{padding:28px 30px 0 34px;display:flex;flex-direction:column;gap:24px}
+.scr-feat div{display:grid;grid-template-columns:30px 1fr;gap:12px}
+.scr-feat em{font-style:normal;font-size:20px;line-height:1.2}
+.scr-feat b{display:block;font-size:15.5px;font-weight:700}
+.scr-feat p{font-size:13.5px;line-height:1.35;color:var(--ms-mute);margin-top:2px}
+.scr-feat .for{display:inline-block;margin-bottom:-12px;height:22px;line-height:22px;padding:0 9px;border-radius:7px;background:var(--ms-yellow3);color:#7A5200;font-size:11.5px;font-weight:700;width:max-content}
+.scr-dots{display:flex;justify-content:center;gap:7px;margin-top:-22px;position:relative;z-index:3}
+.scr-dots i{width:6px;height:6px;border-radius:50%;background:#DCDCE0;cursor:pointer}
+.scr-dots i.on{background:#A8A8AE}
+/* personalized map hero */
+.scr-mapcard{position:absolute;left:20px;right:20px;top:58px;height:150px;border-radius:16px;overflow:hidden;box-shadow:0 10px 24px -14px rgba(120,80,0,.6);border:3px solid #fff}
+.scr-mapcard>img{width:100%;height:100%;object-fit:cover;display:block}
+.scr-pin{position:absolute;width:24px;height:24px;margin:-24px 0 0 -12px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.25);display:grid;place-items:center;transition:opacity .35s,transform .35s}
+.scr-pin span{transform:rotate(45deg);font-size:11px;line-height:1}
+.pins-off .scr-pin.ov{opacity:0;transform:rotate(-45deg) scale(.4)}
+.scr-ovsw{position:absolute;right:8px;bottom:8px;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.95);border-radius:20px;padding:4px 5px 4px 10px;font-size:11.5px;font-weight:700}
+.scr-sw{width:38px;height:23px;border-radius:12px;background:#34C759;position:relative;transition:background .2s}
+.scr-sw::after{content:'';position:absolute;top:2px;left:17px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .2s}
+.pins-off .scr-sw{background:#D9D9DE}.pins-off .scr-sw::after{left:2px}
+.scr-s0.pz h2{top:262px;font-size:19.5px;line-height:1.22}
+.scr-ml{position:absolute;left:22px;right:22px;top:316px;font-size:11.5px;color:var(--ms-mute);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scr-ml i{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px 0 0;vertical-align:0}
+.scr-ml em{font-style:normal;margin:0 6px}
+.scr-s0.pz .scr-plogo{top:222px}
+/* plans */
+.scr-plans{padding:24px 20px 0;display:flex;flex-direction:column;gap:12px}
+.scr-plan{position:relative;text-align:left;border:1.5px solid var(--ms-line);border-radius:10px;padding:12px 14px;background:var(--ms-card)}
+.scr-plan.on{border:2px solid var(--ms-yellow);padding:11.5px 13.5px}
+.scr-plan b{display:block;font-size:15px;font-weight:700}
+.scr-plan span{display:block;font-size:12.5px;color:var(--ms-mute);margin-top:2px}
+.scr-plan .tg{position:absolute;right:-1px;top:-13px;height:24px;line-height:24px;padding:0 9px;border-radius:7px;background:var(--ms-tag);color:#fff;font-size:12px;font-weight:600}
+.scr-plan .sv{display:inline-block;margin-left:7px;height:20px;line-height:20px;padding:0 7px;border-radius:6px;background:#E6F7EC;color:#1E9E52;font-size:11.5px;font-weight:700;vertical-align:1px}
+.scr-start{display:block;text-align:center;margin:20px 0 0;font-size:15px;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.scr-proof{margin:18px 20px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.scr-proof div{background:var(--ms-soft);border-radius:12px;padding:9px 4px;text-align:center}
+.scr-proof b{display:block;font-size:16.5px;font-weight:800;letter-spacing:-.01em}
+.scr-proof span{display:block;font-size:10.5px;line-height:1.25;color:var(--ms-mute);margin-top:2px}
+.scr-tl{margin:22px 20px 0;display:grid;grid-template-columns:40px 1fr;column-gap:16px}
+.scr-tlbar{grid-row:1/3;border-radius:20px;background:linear-gradient(180deg,var(--ms-yellow) 0 50%,var(--ms-yellow3) 50% 100%);display:flex;flex-direction:column;align-items:center;justify-content:space-around;padding:8px 0;font-size:15px}
+.scr-tl div.t{padding:6px 0 10px}
+.scr-tl b{display:block;font-size:15px;font-weight:700}
+.scr-tl span{display:block;font-size:12.5px;color:var(--ms-mute);margin-top:1px}
+.scr-rev{margin:24px 20px 0;background:var(--ms-soft);border-radius:var(--r-card);padding:16px 16px 12px;text-align:center}
+.scr-rev b{font-size:14.5px;font-weight:700}
+.scr-rev p{font-size:13px;line-height:1.4;color:var(--ms-ink2);margin-top:5px}
+.scr-rev .st{color:#F5B400;letter-spacing:3px;margin-top:6px;font-size:15px}
+.scr-rev .by{font-size:11.5px;color:var(--ms-mute);margin-top:2px}
+.scr-links{text-align:center;font-size:12px;color:var(--ms-mute);padding:20px 0 18px;line-height:2}
+.scr-toast{position:absolute;left:16px;right:16px;bottom:120px;background:rgba(17,17,19,.92);color:#fff;font:500 14px/1.4 Inter,sans-serif;padding:11px 14px;border-radius:12px;z-index:120;opacity:0;transition:opacity .25s;pointer-events:none;text-align:center}
+.scr-toast.show{opacity:1}
+/* offer sheet */
+.scr-dim{position:absolute;inset:0;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity .3s;z-index:80}
+.scr-dim.on{opacity:1;pointer-events:auto}
+.scr-of{position:absolute;left:0;right:0;bottom:0;z-index:90;background:var(--ms-bg);color:var(--ms-ink);border-radius:24px 24px 0 0;padding:10px 20px 34px;font-family:-apple-system,'SF Pro Text',Inter,sans-serif;transform:translateY(105%);transition:transform .38s cubic-bezier(.32,.72,0,1)}
+.scr-of.on{transform:none}.scr-of.nofx{transition:none}
+.scr-of .hdl{width:40px;height:5px;border-radius:3px;background:#E1E1E5;margin:0 auto 14px}
+.scr-of .scr-mini{padding:0 0 12px}
+.scr-of h2{font-size:21px;line-height:1.2;font-weight:700;text-align:center}
+.scr-of .os{font-size:13.5px;line-height:1.35;color:var(--ms-mute);text-align:center;margin-top:6px}
+.scr-cmp{margin-top:14px;border:1.5px solid var(--ms-line);border-radius:12px;overflow:hidden}
+.scr-cmp div{display:grid;grid-template-columns:1fr 62px 62px;align-items:center;min-height:36px;padding:0 12px;font-size:13px;border-top:1px solid var(--ms-line)}
+.scr-cmp div:first-child{border-top:0;background:var(--ms-soft);font-weight:700;font-size:12px;color:var(--ms-ink2);min-height:32px}
+.scr-cmp div span{text-align:center}
+.scr-cmp div span:last-child{color:#B07A00;font-weight:700}
+.scr-cmp div:first-child span:last-child{color:var(--ms-pink)}
+.scr-cmp .no{color:#C2C2C8}
+.scr-of .scr-plan{margin-top:14px}
+.scr-of .scr-cta{margin-top:12px}
+.scr-of .nt{display:block;width:100%;text-align:center;margin-top:10px;font-size:14px;color:var(--ms-mute);padding:4px}
+
+.today .pz{display:none!important}
+.newv .td{display:none!important}
+
+/* dark — approximated; Mapstr shows no dark frames */
+.phone-in.dark{--ms-bg:#121214;--ms-card:#1C1C1F;--ms-soft:#1F1F23;--ms-line:#2C2C31;--ms-ink:#F4F4F6;--ms-ink2:#D8D8DD;--ms-mute:#9A9AA2;--ms-sel:#16223A;--ms-selb:#2F5DA8;--ms-follow2:#2C2C31;--ms-yellow3:#5A4510;--ms-tag:#F4F4F6;background:#121214}
+.phone-in.dark .sbar{color:#fff}.phone-in.dark .homebar{background:#fff}
+.phone-in.dark .scr-plan .tg{color:#111}
+.phone-in.dark .scr-prog{background:#2C2C31}
+.phone-in.dark .scr-feat .for{color:#FFD879}
+.phone-in.dark .scr-x{background:rgba(30,30,34,.8)}.phone-in.dark .scr-x path{stroke:#fff}
+.phone-in.dark .scr-s0 h2{color:#E8E8EC}
+.phone-in.dark .scr-dots i{background:#3A3A40}.phone-in.dark .scr-dots i.on{background:#8A8A92}
+.phone-in.dark .scr-of .hdl{background:#3A3A40}
+.phone-in.dark .scr-plan .sv{background:#173A25;color:#5BD08A}
+.phone-in.dark .scr-cmp div span:last-child{color:#FFC323}
+
+/* markers */
+.mk{position:absolute;z-index:70;width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font:800 12px/22px 'DM Sans',sans-serif;text-align:center;box-shadow:0 0 0 2.5px #fff,0 3px 10px rgba(0,0,0,.3);pointer-events:none;transition:transform .2s}
+.today .mk,.indemo .mk{display:none}
+.hl{outline:2.5px solid var(--ms-yellow);outline-offset:3px;border-radius:12px}
+.mk.hot{transform:scale(1.25)}
+.flash{animation:flash 1.8s ease 2}
+@keyframes flash{0%,100%{outline:2.5px solid transparent;outline-offset:3px}50%{outline:2.5px solid #FFC323;outline-offset:3px}}
+
+.ans{width:412px;max-width:100%;background:#fff;border-radius:20px;padding:16px 18px;border:1px solid var(--hair)}
+.ans .k{font:800 10.5px/1 'DM Sans',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-ink)}
+.ans p{font-size:13px;color:var(--ink3);margin:6px 0 4px;line-height:1.45}
+.ans label{display:block;font:700 12.5px/1.3 'DM Sans',sans-serif;color:var(--ink2);margin:10px 0 6px}
+.ans input{width:100%;height:40px;border:0;background:#F6F4EE;border-radius:12px;padding:0 13px;font-size:14px;outline:0;color:var(--ink)}
+.ans input:focus{box-shadow:0 0 0 2px var(--accent)}
+.backbar{width:412px;max-width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.backbtn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px 0 10px;border-radius:999px;background:#fff;border:1px solid var(--hair2);font:700 14px/1 'DM Sans',sans-serif}
+.backbtn svg{width:16px;height:16px}
+.backbar .where{font-size:12.5px;font-weight:500;color:var(--ink3)}
+.qr.side{width:412px;max-width:100%}
+
+/* panel */
+.pn{padding:32px 34px 60px;color:var(--panel-ink)}
+.pn-eb{font:800 10.5px/1 'DM Sans',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-ink)}
+.pn h1{font:900 28px/1.12 'DM Sans',sans-serif;letter-spacing:-.025em;margin:12px 0 12px}
+.pn .lede{font-size:15px;line-height:1.62;color:#45454B}
+.pn-from{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 4px}
+.pn-from span{font-size:12.5px;font-weight:500;border-radius:999px;padding:5px 11px;background:#FFF4D2;color:#6B5310}
+.pn-from span b{font-weight:800;color:var(--ink)}
+.chg{border-top:1px solid var(--panel-line);padding:22px 0 20px;display:grid;grid-template-columns:30px 1fr;gap:14px;transition:background .15s}
+.chg:first-of-type{margin-top:22px}
+.chg .no{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font:800 12.5px/26px 'DM Sans',sans-serif;text-align:center;margin-top:1px}
+.chg h3{font:800 17.5px/1.3 'DM Sans',sans-serif;letter-spacing:-.01em}
+.chg .ba{margin-top:10px;display:grid;grid-template-columns:54px 1fr;gap:6px 10px;font-size:14px;line-height:1.5}
+.chg .ba dt{font:800 10px/1 'DM Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--panel-muted);padding-top:5px}
+.chg .ba dd{color:#2B2B30}
+.chg .ba dd q{quotes:'“' '”'}
+.chg .uses{margin-top:10px;font-size:12.5px;color:var(--panel-muted)}
+.chg .uses b{color:#2B2B30}
+.chg .imp{margin-top:12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.chg .imp b{font:900 27px/1.1 'DM Sans',sans-serif;letter-spacing:-.025em;color:var(--accent-lift);white-space:nowrap}
+.chg .imp span{font-size:11.5px;color:var(--panel-muted)}
+.chg .imp .lbl{display:block;width:100%;font:800 10px/1 'DM Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--panel-muted)}
+.chg:hover{background:#FFFBEE}
+.kept{border-top:1px solid var(--panel-line);padding-top:20px;margin-top:4px}
+.kept .k{font:800 10.5px/1 'DM Sans',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--panel-muted)}
+.kept p{font-size:14px;line-height:1.6;color:#45454B;margin-top:8px}
+.pn-lang{display:none;font-size:12.5px;color:var(--panel-muted);background:#FFF8E4;border-radius:10px;padding:9px 12px;margin-top:14px}
+.pn-lang.on{display:block}
+.pn-foot{font-size:11.5px;line-height:1.55;color:var(--panel-muted);border-top:1px solid var(--panel-line);padding-top:14px;margin-top:22px}
+
+@media(max-width:500px){
+  .phonecol{padding:12px 0 28px}
+  .phone{width:100vw;height:calc(100svh - 68px);min-height:640px;border:0;border-radius:0;box-shadow:none;order:3}
+  .phone-in{border-radius:0}
+  .island,.sbar,.homebar{display:none}
+  .scr-top{height:48px;padding-top:12px}.scr-back{top:10px}.scr-x{top:10px}
+  .scr-mapcard{top:14px}.scr-art{top:16px}.scr-mini{padding-top:16px}
+  .scr-foot{padding-bottom:18px}
+  .backbar{order:1;padding:0 12px;width:100%}.backbar .where{display:none}
+  .seg button{padding:6px 9px;font-size:12px}.tools{order:2;padding:0 8px}.demo-cap{order:4;width:auto;align-self:stretch;margin:0 10px}
+  .chips{order:5}.ans{order:6;width:auto;margin:0 12px}
+  .demo-cap.on{position:fixed;left:10px;right:10px;bottom:10px;width:auto;z-index:150}
+}
+</style>
+</head>
+<body>
+<div class="nav"><div class="nav-in"><img src="img/logo.svg" alt="mapstr"><span class="lb">Paywall audit</span><div class="nav-links"><button class="on" data-view="over"><span class="n">1</span>Overview</button><button data-view="pw"><span class="n">2</span>Prototype</button></div></div></div>
+
+<!-- ======================= OVERVIEW ======================= -->
+<div class="view on" id="view-over">
+<div class="hero"><div class="wrap"><div class="hero-grid">
+  <div>
+    <img class="logo" src="img/logo.svg" alt="mapstr">
+    <div class="eyebrow">Paywall audit · October 2026</div>
+    <h1>Five ideas for the screen where Plus is chosen</h1>
+    <p class="lede">One screen before your paywall, people tell you why they came and which maps they want to follow. Five changes put that on mapstr plus.</p>
+    <div class="meta">Prepared by <b>Adapty</b> · based on your live iOS flow, mapstr.com and your App Store listings</div>
+    <div class="herobtns">
+      <button class="pillbtn white" data-view="pw">Open the prototype <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <button class="pillbtn dark" id="heroDemo"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg>Watch the 30-second walkthrough</button>
+    </div>
+  </div>
+  <div class="hero-art" aria-hidden="true"><img class="a" src="img/hero-site.png" alt=""><img class="b" src="img/mymap.png" alt=""></div>
+</div></div></div>
+
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><b>30,000+</b><span>apps run subscriptions<br>on Adapty</span></div>
+    <div class="stat"><b>5</b><span>changes across your paywall<br>and the moment it closes</span></div>
+    <div class="stat"><b>0</b><span>design changes<br>to your art direction</span></div>
+  </div>
+  <div class="fb">
+    <div class="fb-k">Built in Adapty Flow Builder</div>
+    <div class="fb-i"><span class="tick"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><p><b>Millions of dollars</b> in subscription revenue pass through Flow Builder every month.</p></div>
+    <div class="fb-i"><span class="tick"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><p><b>Nearly 500 apps</b> actively build their paywalls and onboarding in it — plenty of them past $100K MRR.</p></div>
+  </div>
+</div>
+
+<div class="sec"><div class="wrap">
+  <div class="sec-k">What this is</div>
+  <h2>We went through Mapstr’s onboarding as a new member, then rebuilt the screen where <mark>mapstr plus</mark> is decided.</h2>
+  <p class="body">Adapty powers subscriptions for <b>30,000+ apps</b>, so we see what moves conversion across the market, not inside one app. We went through Mapstr’s sign-up, answered “Why do you want to use mapstr?”, followed the must-have maps, reached the mapstr plus paywall, read your App Store listings and mapstr.com, and rebuilt that screen.</p>
+  <p class="body">There is a lot to keep: a real 7-day trial with a Day 5 reminder, an annual and a monthly plan, a clear feature carousel and a 5-star review. <b>What it does not do is use the two answers it just collected.</b> Someone who followed The World’s 50 Best Bars one tap earlier sees a generic map illustration, Overlay maps is two swipes into the carousel, your 4 million users and 30K French ratings never appear, and closing it ends the conversation.</p>
+  <div class="notes">
+    <div class="note"><h4>We did not redesign your paywall</h4><p>Your yellow wave, the mapstr plus logo, the feature carousel and its emoji, the two plan cards with the black “The more popular” tag, the underlined trial line, the Today / Day 5 timeline, the review card and the yellow “Start for free” button all stay. Only the words, the order and two small additions change.</p></div>
+    <div class="note"><h4>You may have tested some of this</h4><p>We are working from the outside, so we cannot see your experiment history. If you have already run one of these, tell us and we will go deeper on the rest.</p></div>
+  </div>
+</div></div>
+
+<div class="sec" style="padding-top:0"><div class="wrap">
+  <div class="sec-k">What we change</div>
+  <h2>Five changes, ranked by what we would <mark>test first</mark>.</h2>
+  <p class="body">Each one opens the prototype with that change highlighted.</p>
+  <div class="ideas">
+    <button class="idea" data-hl="1"><span class="ic">🎁<span class="no">1</span></span><span>
+      <h3>Catch the close with the monthly plan</h3>
+      <p>Closing the paywall today goes straight to “It’s better with your friends!”. Now a sheet compares free with mapstr plus, starting from your own 300-place limit, and offers the monthly plan you already sell.</p>
+      <span class="seeit">See it in the prototype →</span></span>
+      <span class="out"><b>ARPU +10–15%</b><span>from a second chance</span></span></button>
+    <button class="idea" data-hl="2"><span class="ic">🗺️<span class="no">2</span></span><span>
+      <h3>Show the maps they just followed</h3>
+      <p>One tap before the paywall, Julia follows The World’s 50 Best Bars and La Liste. The paywall opens on a generic illustration. Now it opens on her map with their places switched on by Overlay maps, your Plus-only feature, and her name.</p>
+      <span class="seeit">See it in the prototype →</span></span>
+      <span class="out"><b>CR +15–20%</b><span>to trial start</span></span></button>
+    <button class="idea" data-hl="3"><span class="ic">🧳<span class="no">3</span></span><span>
+      <h3>Lead with why they came</h3>
+      <p>“Why do you want to use mapstr?” asks to save places, plan a trip or find suggestions. The carousel shows the same features in the same order to everyone. Now the first slide speaks to the first reason picked, using your own advantage lines.</p>
+      <span class="seeit">See it in the prototype →</span></span>
+      <span class="out"><b>CR +10–15%</b><span>to trial start</span></span></button>
+    <button class="idea" data-hl="4"><span class="ic">⭐<span class="no">4</span></span><span>
+      <h3>Put your proof next to the price</h3>
+      <p>Your paywall carries one review. Your listing carries 4.7 stars from 30K French ratings, and mapstr.com says 4 million users and over 105 million places saved. They now sit right under the plans.</p>
+      <span class="seeit">See it in the prototype →</span></span>
+      <span class="out"><b>CR +10–15%</b><span>to trial start</span></span></button>
+    <button class="idea" data-hl="5"><span class="ic">💛<span class="no">5</span></span><span>
+      <h3>Say what the annual plan saves</h3>
+      <p>“The more popular” tells people what others pick, not why. At your own 59 € a year against 7,90 € a month, the annual plan saves 38%. The card now says so.</p>
+      <span class="seeit">See it in the prototype →</span></span>
+      <span class="out"><b>ARPU +10–15%</b><span>from a bigger annual share</span></span></button>
+  </div>
+  <div class="band">
+    <div class="txt"><div class="lab">Potential outcome</div><p>Together, the five make mapstr plus about the maps she just followed and the reason she came, with your proof beside the price and a second door when she closes it.</p></div>
+    <div class="nums"><div><b>up to +20%</b><span>CR to trial</span></div><div><b>up to +15%</b><span>ARPU</span></div></div>
+  </div>
+  <div class="cta-row">
+    <button class="pillbtn yel" data-view="pw">Open the prototype <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    <div class="qr"><img src="img/qr.svg" alt="QR code to the prototype"><div><b>Open it on your phone</b><span>Scan to try the flow in your hand.</span></div></div>
+  </div>
+</div></div>
+<div class="foot"><div class="wrap">Impact ranges are Adapty’s expected effect from teardowns and A/B tests across subscription apps — not measured lift for Mapstr. Every price, rating, figure, feature and line of copy here comes from Mapstr’s own in-app screens, App Store listings and mapstr.com; prices are the European examples on your FAQ, and the 38% saving is computed from them.</div></div>
+</div><!-- /view-over -->
+
+<!-- ======================= PROTOTYPE ======================= -->
+<div class="view" id="view-pw">
+<div class="stage">
+  <div class="phonecol">
+    <div class="backbar"><button class="backbtn" data-view="over"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Overview</button><span class="where">The last two onboarding steps, then mapstr plus</span></div>
+    <div class="tools">
+      <div class="seg" id="segLang"><button data-l="en" class="on">EN</button><button data-l="fr">FR</button><button data-l="it">IT</button></div>
+      <div class="seg" id="segTheme"><button data-th="light" class="on">Light</button><button data-th="dark">Dark</button></div>
+      <div class="seg" id="segVar"><button data-v="today">Today</button><button data-v="new" class="on">Proposed</button></div>
+      <div class="seg demo"><button id="demoBtn"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg>30-sec walkthrough</button></div>
+    </div>
+    <div class="demo-cap" id="demoCap"><span id="demoTxt"></span><div class="bar"><i id="demoBar"></i></div></div>
+
+    <div class="phone">
+      <div class="phone-in" id="phoneIn">
+        <div class="island"></div>
+        <div class="sbar"><span>12:31</span><span class="g">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity=".35"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.2c2.3 0 4.4.9 6 2.4l1.3-1.3A10.3 10.3 0 0 0 8 .3 10.3 10.3 0 0 0 .7 3.3L2 4.6a8.4 8.4 0 0 1 6-2.4Zm0 3.7c1.3 0 2.5.5 3.4 1.3l1.3-1.3A6.6 6.6 0 0 0 8 4a6.6 6.6 0 0 0-4.7 1.9l1.3 1.3C5.5 6.4 6.7 5.9 8 5.9Zm0 3.6c.5 0 1 .2 1.3.5L8 11.3 6.7 10c.3-.3.8-.5 1.3-.5Z"/></svg>
+          <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x=".5" y=".5" width="23" height="12" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2" fill="currentColor"/><path d="M25 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2Z" fill="currentColor" opacity=".45"/></svg></span></div>
+        <div class="homebar"></div>
+
+        <!-- 1 · Why do you want to use mapstr? -->
+        <section class="scr on" id="intent">
+          <div class="scr-top"><div class="scr-prog"><i style="width:62%"></i></div></div>
+          <div class="scr-body"><h1 class="scr-h" id="inH"></h1><p class="scr-sub" id="inS"></p><div class="scr-opts" id="inOpts"></div></div>
+          <div class="scr-foot"><button class="scr-cta" id="inNext"></button></div>
+        </section>
+
+        <!-- 2 · Must-have maps -->
+        <section class="scr" id="maps">
+          <div class="scr-top"><button class="scr-back" data-back="intent"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="scr-prog"><i style="width:80%"></i></div></div>
+          <div class="scr-body"><h1 class="scr-h" id="mpH"></h1><p class="scr-sub" id="mpS"></p><div class="scr-maps" id="mpList"></div></div>
+          <div class="scr-foot"><p class="scr-note" id="mpNote"></p><button class="scr-cta" id="mpNext"></button></div>
+        </section>
+
+        <!-- 3 · mapstr plus -->
+        <section class="scr scr-pw" id="pw">
+          <button class="scr-x" id="pwX" aria-label="Close" data-t="1"><svg width="12" height="12" viewBox="0 0 14 14"><path d="M2 2l10 10M12 2 2 12" stroke="#8E8E93" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <div class="scr-body" id="pwBody">
+            <div class="scr-car"><div class="scr-track" id="track"></div></div>
+            <div class="scr-dots" id="dots"></div>
+            <div class="scr-plans" id="plans"></div>
+            <span class="scr-start" id="pwStart"></span>
+            <div class="scr-proof pz" id="proof" data-t="4"></div>
+            <div class="scr-tl"><div class="scr-tlbar"><span>🔒</span><span>🔔</span></div><div class="t"><b id="tl1"></b><span id="tl1s"></span></div><div class="t"><b id="tl2"></b><span id="tl2s"></span></div></div>
+            <div class="scr-rev"><b>Best mapping app by far</b><p>I’ve been wanting an app like this for so long as google maps keys weren’t specific enough for me.</p><div class="st">★★★★★</div></div>
+            <div class="scr-links"><span id="lk1"></span><br><span id="lk2"></span></div>
+          </div>
+          <div class="scr-foot"><button class="scr-cta" id="pwCta"></button></div>
+        </section>
+
+        <div class="scr-dim" id="ofDim"></div>
+        <section class="scr-of" id="of" data-t="1">
+          <div class="hdl"></div>
+          <div class="scr-mini"><img src="img/logo.svg" alt="mapstr"><span>plus</span></div>
+          <h2 id="ofH"></h2>
+          <p class="os" id="ofS"></p>
+          <div class="scr-cmp" id="ofCmp"></div>
+          <div class="scr-plan on"><b id="ofPn"></b><span id="ofPp"></span></div>
+          <button class="scr-cta" id="ofCta"></button>
+          <button class="nt" id="ofNo"></button>
+        </section>
+        <div class="scr-toast" id="toast"></div>
+        <div id="mks"></div>
+      </div>
+    </div>
+
+    <div class="chips" id="chips"><button class="chip" data-go="intent">Why mapstr?</button><button class="chip" data-go="maps">Must-have maps</button><button class="chip on" data-go="pw">mapstr plus</button><button class="chip offer" data-go="of">✦ Offer on close</button></div>
+
+    <div class="ans">
+      <div class="k">What Mapstr already knows</div>
+      <p>The name comes from sign-up. The reasons and the maps come from the two screens above the paywall: change them there and mapstr plus rewrites itself.</p>
+      <label for="aName">First name</label><input id="aName" value="Julia" autocomplete="off" maxlength="14">
+    </div>
+    <div class="qr side"><img src="img/qr.svg" alt="QR code to the prototype"><div><b>Open it on your phone</b><span>Scan to try the flow in your hand.</span></div></div>
+  </div>
+
+  <aside class="panelcol"><div class="pn">
+    <div class="pn-eb">Paywall rebuild · October 2026</div>
+    <h1>mapstr plus, fed by the two answers before it</h1>
+    <p class="lede">Same screen, same plans, same trial, same art direction. Five changes, each fed by something your onboarding already asks or something you already publish. Flip <b>Today</b> above the phone to see the version that ships now.</p>
+    <div class="pn-from" id="pnFrom"></div>
+    <div class="pn-lang" id="pnLang"></div>
+
+    <div class="chg" data-c="1"><span class="no">1</span><div>
+      <h3>A second chance on close</h3>
+      <dl class="ba"><dt>Today</dt><dd>The X goes straight to <q>It’s better with your friends!</q>, with no other offer.</dd>
+        <dt>Now</dt><dd id="c1now"></dd></dl>
+      <div class="uses"><b>Uses:</b> your monthly plan at 7,90 € (European example from your FAQ), your 300-place free limit and four Plus-only features from your FAQ. No new price, no discount, no countdown.</div>
+      <div class="imp"><span class="lbl">Potential outcome · based on Adapty data</span><b>ARPU +10–15%</b><span>from people who would have closed</span></div></div></div>
+
+    <div class="chg" data-c="2"><span class="no">2</span><div>
+      <h3>The maps she just followed, on her map</h3>
+      <dl class="ba"><dt>Today</dt><dd>A generic folded-map illustration and <q>Unlock all features right now</q>, the same for everyone.</dd>
+        <dt>Now</dt><dd id="c2now"></dd></dl>
+      <div class="uses"><b>Uses:</b> the maps followed on “Must-have maps”, the first name from sign-up, Overlay maps (“With just one switch, all your favorite maps gathered in one place”) and a Paris map from your App Store page.</div>
+      <div class="imp"><span class="lbl">Potential outcome · based on Adapty data</span><b>CR +15–20%</b><span>to trial start</span></div></div></div>
+
+    <div class="chg" data-c="3"><span class="no">3</span><div>
+      <h3>The first slide answers why she came</h3>
+      <dl class="ba"><dt>Today</dt><dd>Save time and Explore endlessly first, for everyone, whatever “Why do you want to use mapstr?” said.</dd>
+        <dt>Now</dt><dd id="c3now"></dd></dl>
+      <div class="uses"><b>Uses:</b> the answers to “Why do you want to use mapstr?” and your own “All my mapstr plus advantages” lines and emoji.</div>
+      <div class="imp"><span class="lbl">Potential outcome · based on Adapty data</span><b>CR +10–15%</b><span>to trial start</span></div></div></div>
+
+    <div class="chg" data-c="4"><span class="no">4</span><div>
+      <h3>Your proof next to the price</h3>
+      <dl class="ba"><dt>Today</dt><dd>One review card, below the timeline.</dd>
+        <dt>Now</dt><dd>Three tiles right under the plans: <b>4.7 ★</b> from 30K ratings, <b>4M+</b> users, <b>105M+</b> places saved. The review card stays.</dd></dl>
+      <div class="uses"><b>Uses:</b> 4.7 from 30,150 ratings (App Store France), “a community of +4 million users” and “105,456,789 places registered by our users” from mapstr.com.</div>
+      <div class="imp"><span class="lbl">Potential outcome · based on Adapty data</span><b>CR +10–15%</b><span>to trial start</span></div></div></div>
+
+    <div class="chg" data-c="5"><span class="no">5</span><div>
+      <h3>The annual saving, said</h3>
+      <dl class="ba"><dt>Today</dt><dd><q>The more popular</q> on the annual card, and no saving.</dd>
+        <dt>Now</dt><dd><q>Save 38%</q> beside <q>Annual subscription</q>, with the monthly equivalent kept as you show it.</dd></dl>
+      <div class="uses"><b>Uses:</b> 59 € a year against 12 × 7,90 € = 94,80 € a year, from your FAQ.</div>
+      <div class="imp"><span class="lbl">Potential outcome · based on Adapty data</span><b>ARPU +10–15%</b><span>CR +5–15% from a bigger annual share</span></div></div></div>
+
+    <div class="kept"><div class="k">Your design, unchanged</div>
+      <p>The yellow progress bar and option cards with blue checkboxes, the Follow / Following pills, the yellow wave and mapstr plus logo, the swipeable feature carousel with its emoji, the two plan cards with the black “The more popular” tag, “Start with a 7-days free trial!”, the Today / Day 5 timeline, the review card, the links and the yellow “Start for free” button.</p></div>
+
+    <div class="pn-foot">Impact ranges are Adapty’s expected effect from teardowns and A/B tests across subscription apps — not measured lift for Mapstr. Prices are the European examples on your FAQ; your in-app prices vary by country. Dark mode is our approximation; Mapstr shows no dark frames.</div>
+  </div></aside>
+</div>
+</div><!-- /view-pw -->
+<div class="finger" id="finger"></div>
+
+<script>
+var $=function(s){return document.querySelector(s);}, $$=function(s){return [].slice.call(document.querySelectorAll(s));};
+var LANGS=['en','fr','it'];
+var INTENTS=[['save','🗺️',['Save places','Enregistrer des lieux','Salvare luoghi']],['trip','🧳',['Plan a trip','Préparer un voyage','Pianificare un viaggio']],['consult','👀',['Consult maps','Consulter des cartes','Consultare mappe']],['sugg','💡',['Find suggestions for places','Trouver des idées de lieux','Trovare suggerimenti di luoghi']],['other','✏️',['Other','Autre','Altro']]];
+/* must-have maps: names as in your onboarding and on mapstr.com */
+var MAPS=[
+ ['w50r','The World’s 50 Best Restaurants','',['Certified map','Carte certifiée','Mappa certificata'],'#E5484D','🍴','50'],
+ ['laliste','La Liste','',['Certified map','Carte certifiée','Mappa certificata'],'#2F6FEB','⭐','LL'],
+ ['w50b','The World’s 50 Best Bars','@worldsbestbars',null,'#8E4EC6','🍸','50'],
+ ['timeout','Time Out Paris','@timeoutparis',null,'#30A46C','📍','TO'],
+ ['vogue','Vogue Paris','@vogueparis',null,'#E93D82','🛍️','V']];
+/* pins on the overlay, placed on the Paris crop (percent x, percent y) */
+var PINS={w50r:[[22,40],[63,62],[80,30]],laliste:[[35,70],[54,28],[88,58]],w50b:[[14,63],[47,48],[71,80]],timeout:[[28,22],[59,84],[93,36]],vogue:[[40,35],[76,50],[18,82]]};
+/* your own "All my mapstr plus advantages" */
+var ADV={
+ search:['🔥',['Faster, Broader, Smarter','Plus rapide, plus large, plus malin','Più veloce, più ampia, più intelligente'],['Discover our new, more powerful search tool','Découvrez notre nouvel outil de recherche, plus puissant','Scopri il nostro nuovo strumento di ricerca, più potente']],
+ ai:['🪄',['New AI features','Nouvelles fonctions IA','Nuove funzioni IA'],['An intelligent inspiration engine, a personalized recommendation tool based on your preferences, and more detailed descriptions of places','Un moteur d’inspiration intelligent, des recommandations personnalisées selon vos goûts et des descriptions de lieux plus détaillées','Un motore d’ispirazione intelligente, consigli personalizzati in base ai tuoi gusti e descrizioni dei luoghi più dettagliate']],
+ bulk:['🔧',['Bulk editing','Édition groupée','Modifica di gruppo'],['In just a few clicks, clean up your map, update your tags, and organize your places in no time','En quelques clics, nettoyez votre carte, mettez à jour vos tags et organisez vos lieux','In pochi clic, riordina la tua mappa, aggiorna i tag e organizza i tuoi luoghi']],
+ endless:['♾️',['Explore endlessly','Explorez sans limite','Esplora senza limiti'],['Unlimited storage for your addresses, tags, comments, notes, and photos','Stockage illimité pour vos adresses, tags, commentaires, notes et photos','Spazio illimitato per indirizzi, tag, commenti, note e foto']],
+ table:['📅',['Find and book an available table','Trouvez et réservez une table libre','Trova e prenota un tavolo libero'],['No more wasting time—filter available restaurants and book directly on Mapstr','Fini les pertes de temps : filtrez les restaurants disponibles et réservez sur Mapstr','Niente più tempo perso: filtra i ristoranti disponibili e prenota su Mapstr']],
+ alerts:['👋',['Get proximity alerts','Alertes de proximité','Avvisi di prossimità'],['Get notified whenever you’re near a place saved on your map','Soyez prévenu quand vous passez près d’un lieu de votre carte','Ricevi una notifica quando sei vicino a un luogo della tua mappa']],
+ visits:['📝',['Save your visits','Enregistrez vos visites','Salva le tue visite'],['For each place, save visits and turn your map into a journal of your adventures','Pour chaque lieu, enregistrez vos visites et faites de votre carte un journal','Per ogni luogo, salva le visite e trasforma la mappa in un diario']],
+ overlay:['🗺️',['Overlay maps','Superposition de cartes','Sovrapposizione di mappe'],['With just one switch, all your favorite maps gathered in one place','En un seul geste, toutes vos cartes préférées réunies au même endroit','Con un solo interruttore, tutte le tue mappe preferite in un unico posto']],
+ web:['🖥️',['Enjoy the web version','Profitez de la version web','Usa la versione web'],['Sometimes it’s more convenient to manage your addresses from your computer','Parfois, c’est plus pratique de gérer vos adresses depuis votre ordinateur','A volte è più comodo gestire i tuoi indirizzi dal computer']],
+ support:['💛',['Support us!','Soutenez-nous !','Sostienici!'],['Your subscription also allows us to continue the development of Mapstr with peace of mind','Votre abonnement nous permet aussi de continuer à développer Mapstr sereinement','Il tuo abbonamento ci permette anche di continuare a sviluppare Mapstr con serenità']]};
+var TODAY_SLIDES=[['search','endless'],['ai','overlay'],['web','support']];
+var FOR={save:['endless','bulk'],trip:['alerts','table'],consult:['overlay','search'],sugg:['ai','overlay'],other:['search','endless']};
+var FORL={save:['For saving places','Pour enregistrer vos lieux','Per salvare i tuoi luoghi'],trip:['For planning your trip','Pour préparer votre voyage','Per pianificare il viaggio'],consult:['For consulting maps','Pour consulter des cartes','Per consultare mappe'],sugg:['For finding new places','Pour trouver de nouveaux lieux','Per trovare nuovi luoghi'],other:['For you','Pour vous','Per te']};
+var T={
+ inH:['Why do you want to use mapstr?','Pourquoi voulez-vous utiliser mapstr ?','Perché vuoi usare mapstr?'],
+ inS:['This will help us personalize your experience. Choose as many options as necessary.','Cela nous aidera à personnaliser votre expérience. Choisissez autant d’options que nécessaire.','Ci aiuterà a personalizzare la tua esperienza. Scegli tutte le opzioni che vuoi.'],
+ next:['Next','Suivant','Avanti'],
+ mpH:['Must-have maps','Cartes incontournables','Mappe imperdibili'],
+ mpS:['By following them, you can find these maps and their places from your following.','En les suivant, retrouvez ces cartes et leurs lieux dans vos abonnements.','Seguendole, ritrovi queste mappe e i loro luoghi tra i tuoi abbonamenti.'],
+ mpNote:['Please select at least one map','Sélectionnez au moins une carte','Seleziona almeno una mappa'],
+ fol:['Follow','Suivre','Segui'], foll:['Following','Abonné','Segui già'],
+ unlock:['Unlock all features right now','Débloquez toutes les fonctionnalités dès maintenant','Sblocca subito tutte le funzioni'],
+ hMap1:['{N}, the map you follow, on your own map','{N}, la carte que vous suivez, sur la vôtre','{N}, la mappa che segui, sulla tua'],
+ hMapK:['{N}, the {K} maps you follow, on your own map','{N}, les {K} cartes que vous suivez, sur la vôtre','{N}, le {K} mappe che segui, sulla tua'],
+ hMap0:['{N}, all your favorite maps on yours','{N}, toutes vos cartes préférées sur la vôtre','{N}, tutte le tue mappe preferite sulla tua'],
+ ovl:['Overlay maps','Superposition','Sovrapposizione'],
+ annual:['Annual subscription','Abonnement annuel','Abbonamento annuale'],
+ annualP:['7 days for free then 4,92 €/month (59 €/year)','7 jours gratuits puis 4,92 €/mois (59 €/an)','7 giorni gratis poi 4,92 €/mese (59 €/anno)'],
+ monthly:['Monthly subscription','Abonnement mensuel','Abbonamento mensile'],
+ monthlyP:['7 days for free then 7,90 €/month','7 jours gratuits puis 7,90 €/mois','7 giorni gratis poi 7,90 €/mese'],
+ tag:['The more popular','Le plus populaire','Il più scelto'],
+ save:['Save 38%','−38 %','−38%'],
+ start:['Start with a 7-days free trial!','Commencez par 7 jours d’essai gratuit !','Inizia con 7 giorni di prova gratuita!'],
+ tl1:['Today','Aujourd’hui','Oggi'], tl1s:['Get full access to the features','Accès complet aux fonctionnalités','Accesso completo alle funzioni'],
+ tl2:['Day 5','Jour 5','Giorno 5'], tl2s:['Get a reminder about when your trial will end','Un rappel avant la fin de votre essai','Un promemoria prima della fine della prova'],
+ lk1:['Terms & Conditions','Conditions générales','Termini e condizioni'], lk2:['Restore purchase  ·  Promo code?','Restaurer un achat  ·  Code promo ?','Ripristina acquisto  ·  Codice promo?'],
+ cta:['Start for free','Commencer gratuitement','Inizia gratis'],
+ pr1:['4.7 ★','4,7 ★','4,7 ★'], pr1s:['30K App Store ratings','30K notes App Store','30K voti App Store'],
+ pr2:['4M+','+4 M','+4 Mln'], pr2s:['users','utilisateurs','utenti'],
+ pr3:['105M+','+105 M','+105 Mln'], pr3s:['places saved','lieux enregistrés','luoghi salvati'],
+ ofH:['Not ready for a year?','Pas prêt·e pour un an ?','Non sei pronto per un anno?'],
+ ofS:['{N}, the free plan stops at 300 places. Start with one month of mapstr plus.','{N}, la version gratuite s’arrête à 300 lieux. Commencez par un mois de mapstr plus.','{N}, la versione gratuita si ferma a 300 luoghi. Inizia con un mese di mapstr plus.'],
+ cmpH:['','Gratuit','Gratis'],
+ cmp:[[['Places on your map','Lieux sur votre carte','Luoghi sulla mappa'],'300',['Unlimited','Illimité','Illimitati']],[['Overlay maps','Superposition de cartes','Sovrapposizione di mappe'],'—','✓'],[['AI inspiration & suggestions','Inspiration et suggestions IA','Ispirazione e suggerimenti IA'],'—','✓'],[['Proximity alerts','Alertes de proximité','Avvisi di prossimità'],'—','✓'],[['Find and book a table','Trouver et réserver une table','Trova e prenota un tavolo'],'—','✓']],
+ free:['Free','Gratuit','Gratis'],
+ ofPn:['Monthly subscription','Abonnement mensuel','Abbonamento mensile'],
+ ofCta:['Start with one month','Commencer par un mois','Inizia con un mese'],
+ ofNo:['Keep the free plan','Rester en gratuit','Resta gratis'],
+ toastBuy:['App Store purchase sheet opens here','La feuille d’achat App Store s’ouvre ici','Qui si apre il foglio d’acquisto dell’App Store'],
+ toastX:['Next: “It’s better with your friends!”','Ensuite : « C’est mieux avec vos amis ! »','Poi: «È meglio con i tuoi amici!»'],
+ langNote:['','French screens translated by us. Prices are the European examples on your FAQ; the review stays verbatim in English.','Italian screens translated by us. Prices are the European examples on your FAQ; the review stays verbatim in English.']
+};
+var S={v:'new',lang:'en',theme:'light',name:'Julia',intents:['save','trip','sugg'],follow:['w50r','laliste','w50b'],plan:'y',scr:'pw',of:false,ovl:true,slide:0};
+function L(){ return LANGS.indexOf(S.lang); }
+function esc(s){ return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function nm(){ return esc(S.name.trim().split(' ')[0])||'Hi'; }
+function mapName(k){ return MAPS.filter(function(m){return m[0]===k;})[0][1]; }
+function firstIntent(){ var o=INTENTS.map(function(x){return x[0];}).filter(function(k){ return S.intents.indexOf(k)>=0; }); return o[0]||'other'; }
+function heroH(i){ var f=MAPS.map(function(m){return m[0];}).filter(function(k){return S.follow.indexOf(k)>=0;}), n=nm();
+  if(!f.length) return T.hMap0[i].replace('{N}',n);
+  if(f.length===1) return T.hMap1[i].replace('{N}',n);
+  return T.hMapK[i].replace('{N}',n).replace('{K}',f.length); }
+function mapsLine(){ return MAPS.filter(function(m){ return S.follow.indexOf(m[0])>=0; }).map(function(m){ return '<i style="background:'+m[4]+'"></i>'+m[1]; }).join('<em>·</em>'); }
+var LOGO='<img src="img/logo.svg" alt="mapstr">';
+var ART='<svg class="scr-art" viewBox="0 0 230 130"><g transform="translate(40 26)"><path d="M0 22 48 8l52 14 50-14v84l-50 14-52-14L0 106z" fill="#fff"/><path d="M48 8v84M100 22v84" stroke="#E9E4D6" stroke-width="2"/><path d="M6 64c28-18 52 6 80-10s40-22 58-12" stroke="#7FB3F5" stroke-width="6" fill="none" stroke-linecap="round" opacity=".7"/><rect x="58" y="34" width="30" height="18" rx="4" fill="#BFE6C8"/><rect x="110" y="60" width="26" height="16" rx="4" fill="#BFE6C8"/></g><g><circle cx="26" cy="22" r="13" fill="#3FC48A"/><circle cx="62" cy="84" r="13" fill="#F05A5A"/><circle cx="152" cy="40" r="13" fill="#F06BB0"/><circle cx="207" cy="58" r="13" fill="#4C6FE0"/><circle cx="112" cy="70" r="11" fill="#FFC323" stroke="#fff" stroke-width="3"/></g><g fill="#fff" font-size="12" font-family="-apple-system,sans-serif" text-anchor="middle" font-weight="700"><text x="26" y="26">☺</text><text x="62" y="88">★</text><text x="152" y="44">✿</text><text x="207" y="62">#</text></g></svg>';
+var WAVE='<div class="scr-wave"><svg viewBox="0 0 390 196" preserveAspectRatio="none"><path d="M0 0h390v150c-40 30-90 46-150 30S110 140 60 156 0 190 0 190z" fill="#FFC323"/></svg></div>';
+function featSlide(keys,i,lab){ return '<div class="scr-slide"><div class="scr-mini">'+LOGO+'<span>plus</span></div><div class="scr-feat">'+(lab?'<span class="for">'+lab+'</span>':'')+keys.map(function(k){ var a=ADV[k]; return '<div><em>'+a[0]+'</em><span><b>'+a[1][i]+'</b><p>'+a[2][i]+'</p></span></div>'; }).join('')+'</div></div>'; }
+function render(){
+  var i=L(), pz=S.v==='new', pin=$('#phoneIn');
+  pin.classList.toggle('today',!pz); pin.classList.toggle('newv',pz); pin.classList.toggle('dark',S.theme==='dark');
+  if(!pz) S.of=false;
+  /* intent */
+  $('#inH').textContent=T.inH[i]; $('#inS').textContent=T.inS[i]; $('#inNext').textContent=T.next[i];
+  $('#inOpts').innerHTML=INTENTS.map(function(o){ return '<button class="scr-opt'+(S.intents.indexOf(o[0])>=0?' on':'')+'" data-k="'+o[0]+'"><span class="em">'+o[1]+'</span>'+o[2][i]+'<span class="bx"></span></button>'; }).join('');
+  $('#inNext').disabled=!S.intents.length;
+  $$('#inOpts .scr-opt').forEach(function(b){ b.addEventListener('click',function(e){ if(e.isTrusted) stopDemo(); var k=b.dataset.k, a=S.intents.indexOf(k); if(a>=0) S.intents.splice(a,1); else S.intents.push(k); render(); }); });
+  /* maps */
+  $('#mpH').textContent=T.mpH[i]; $('#mpS').textContent=T.mpS[i]; $('#mpNote').textContent=T.mpNote[i]; $('#mpNext').textContent=T.next[i];
+  $('#mpList').innerHTML=MAPS.map(function(m){ var on=S.follow.indexOf(m[0])>=0; return '<div class="scr-mrow"><span class="scr-av" style="background:'+m[4]+'">'+m[6]+'<i>#</i></span><span class="tx"><b>'+m[1]+'</b><span>'+(m[2]||m[3][i])+'</span></span><button class="scr-fol'+(on?' on':'')+'" data-k="'+m[0]+'">'+(on?T.foll[i]:T.fol[i])+'</button></div>'; }).join('');
+  $('#mpNext').disabled=!S.follow.length;
+  $$('#mpList .scr-fol').forEach(function(b){ b.addEventListener('click',function(e){ if(e.isTrusted) stopDemo(); var k=b.dataset.k, a=S.follow.indexOf(k); if(a>=0) S.follow.splice(a,1); else S.follow.push(k); render(); }); });
+  /* paywall carousel */
+  var slides=[];
+  if(pz){
+    var pins='';
+    MAPS.forEach(function(m){ if(S.follow.indexOf(m[0])<0) return; PINS[m[0]].forEach(function(p){ pins+='<span class="scr-pin ov" style="left:'+p[0]+'%;top:'+p[1]+'%;background:'+m[4]+'"><span>'+m[5]+'</span></span>'; }); });
+    slides.push('<div class="scr-slide scr-s0 pz" data-t="2">'+WAVE+'<div class="scr-mapcard'+(S.ovl?'':' pins-off')+'" id="mapcard"><img src="img/paris.png" alt="">'+pins+'<button class="scr-ovsw" id="ovsw">'+T.ovl[i]+'<span class="scr-sw"></span></button></div><div class="scr-plogo">'+LOGO+'<span>plus</span></div><h2>'+heroH(i)+'</h2><p class="scr-ml">'+mapsLine()+'</p></div>');
+    var fi=firstIntent(), used=FOR[fi].slice(), rest=['search','endless','ai','overlay','alerts','table','visits','bulk','web','support'].filter(function(k){ return used.indexOf(k)<0; });
+    slides.push(featSlide(used,i,FORL[fi][i]).replace('class="scr-slide"','class="scr-slide" data-t="3"'));
+    slides.push(featSlide(rest.slice(0,2),i)); slides.push(featSlide(rest.slice(2,4),i));
+  } else {
+    slides.push('<div class="scr-slide scr-s0">'+WAVE+ART+'<div class="scr-plogo">'+LOGO+'<span>plus</span></div><h2>'+T.unlock[i]+'</h2></div>');
+    TODAY_SLIDES.forEach(function(s){ slides.push(featSlide(s,i)); });
+  }
+  var tr=$('#track'), sl=S.slide; tr.innerHTML=slides.join(''); tr.scrollLeft=sl*tr.clientWidth;
+  $('#dots').innerHTML=slides.map(function(_,k){ return '<i class="'+(k===sl?'on':'')+'" data-k="'+k+'"></i>'; }).join('');
+  $$('#dots i').forEach(function(d){ d.addEventListener('click',function(){ goSlide(+d.dataset.k,true); }); });
+  var sw=$('#ovsw'); if(sw) sw.addEventListener('click',function(e){ if(e.isTrusted) stopDemo(); S.ovl=!S.ovl; $('#mapcard').classList.toggle('pins-off',!S.ovl); });
+  /* plans */
+  $('#plans').innerHTML='<button class="scr-plan'+(S.plan==='y'?' on':'')+'" data-p="y"'+(pz?' data-t="5"':'')+'><span class="tg">'+T.tag[i]+'</span><b>'+T.annual[i]+(pz?'<span class="sv">'+T.save[i]+'</span>':'')+'</b><span>'+T.annualP[i]+'</span></button><button class="scr-plan'+(S.plan==='m'?' on':'')+'" data-p="m"><b>'+T.monthly[i]+'</b><span>'+T.monthlyP[i]+'</span></button>';
+  $$('#plans .scr-plan').forEach(function(b){ b.addEventListener('click',function(e){ if(e.isTrusted) stopDemo(); S.plan=b.dataset.p; render(); }); });
+  $('#pwStart').textContent=T.start[i];
+  $('#proof').innerHTML='<div><b>'+T.pr1[i]+'</b><span>'+T.pr1s[i]+'</span></div><div><b>'+T.pr2[i]+'</b><span>'+T.pr2s[i]+'</span></div><div><b>'+T.pr3[i]+'</b><span>'+T.pr3s[i]+'</span></div>';
+  $('#tl1').textContent=T.tl1[i]; $('#tl1s').textContent=T.tl1s[i]; $('#tl2').textContent=T.tl2[i]; $('#tl2s').textContent=T.tl2s[i];
+  $('#lk1').textContent=T.lk1[i]; $('#lk2').textContent=T.lk2[i]; $('#pwCta').textContent=T.cta[i];
+  /* offer */
+  $('#ofH').textContent=T.ofH[i]; $('#ofS').textContent=T.ofS[i].replace('{N}',nm());
+  $('#ofCmp').innerHTML='<div><span style="text-align:left"></span><span>'+T.free[i]+'</span><span>plus</span></div>'+T.cmp.map(function(r){ return '<div><span style="text-align:left">'+r[0][i]+'</span><span class="'+(r[1]==='—'?'no':'')+'">'+r[1]+'</span><span>'+(typeof r[2]==='string'?r[2]:r[2][i])+'</span></div>'; }).join('');
+  $('#ofPn').textContent=T.ofPn[i]; $('#ofPp').textContent=T.monthlyP[i]; $('#ofCta').textContent=T.ofCta[i]; $('#ofNo').textContent=T.ofNo[i];
+  $('#of').classList.toggle('on',S.of); $('#ofDim').classList.toggle('on',S.of);
+  $$('#chips .chip').forEach(function(c){ c.classList.toggle('on',S.of?c.dataset.go==='of':c.dataset.go===S.scr); });
+  /* panel echoes */
+  var fi2=firstIntent();
+  $('#c1now').innerHTML='The X opens a sheet: <q>Not ready for a year?</q> '+nm()+'’s free plan vs mapstr plus, starting with <b>300 places vs Unlimited</b>, then the monthly plan at 7,90 € and <q>Start with one month</q>. <q>Keep the free plan</q> goes on to your friends step.';
+  $('#c2now').innerHTML='<q>'+headEN()+'</q>, the map names listed under it, over a Paris map with the pins of the maps she follows, and your Overlay maps switch working on the card.';
+  $('#c3now').innerHTML='First reason picked: <b>'+INTENTS.filter(function(x){return x[0]===fi2;})[0][2][0]+'</b>. The first slide after the map is <q>'+FORL[fi2][0]+'</q>: '+FOR[fi2].map(function(k){ return '<b>'+ADV[k][1][0]+'</b>'; }).join(' and ')+'.';
+  $('#pnFrom').innerHTML=['Name <b>'+nm()+'</b>','Wants to <b>'+S.intents.map(function(k){ return INTENTS.filter(function(x){return x[0]===k;})[0][2][0].toLowerCase(); }).join(', ')+'</b>','Follows <b>'+S.follow.length+' maps</b>'].map(function(x){ return '<span>'+x+'</span>'; }).join('');
+  $('#pnLang').textContent=T.langNote[i]; $('#pnLang').classList.toggle('on',i>0);
+  requestAnimationFrame(placeMarks);
+}
+function headEN(){ var s=S.lang; S.lang='en'; var h=heroH(0); S.lang=s; return h; }
+function goSlide(k,smooth){ var tr=$('#track'); S.slide=k; tr.scrollTo({left:k*tr.clientWidth,behavior:smooth?'smooth':'auto'}); $$('#dots i').forEach(function(d,j){ d.classList.toggle('on',j===k); }); setTimeout(placeMarks,400); }
+$('#track').addEventListener('scroll',function(){ var tr=$('#track'), k=Math.round(tr.scrollLeft/tr.clientWidth); if(k!==S.slide){ S.slide=k; $$('#dots i').forEach(function(d,j){ d.classList.toggle('on',j===k); }); } placeMarks(); });
+
+/* router */
+function go(id,fx){
+  if(id==='of'){ S.scr='pw'; S.of=true; } else { S.scr=id; S.of=false; }
+  var order=['intent','maps','pw'], k=order.indexOf(S.scr);
+  order.forEach(function(s,j){ var el=$('#'+s); if(!fx) el.classList.add('nofx'); el.classList.toggle('on',j===k); el.classList.toggle('past',j<k); if(!fx){ void el.offsetWidth; el.classList.remove('nofx'); } });
+  if(S.scr==='pw'&&id!=='of'){ S.slide=0; $('#pwBody').scrollTop=0; }
+  render();
+}
+$('#inNext').addEventListener('click',function(){ go('maps',true); });
+$('#mpNext').addEventListener('click',function(){ go('pw',true); });
+$$('[data-back]').forEach(function(b){ b.addEventListener('click',function(){ go(b.dataset.back,true); }); });
+var tt; function toast(m){ var e=$('#toast'); e.textContent=m; e.classList.add('show'); clearTimeout(tt); tt=setTimeout(function(){ e.classList.remove('show'); },1700); }
+$('#pwCta').addEventListener('click',function(){ toast(T.toastBuy[L()]); });
+$('#ofCta').addEventListener('click',function(){ toast(T.toastBuy[L()]); });
+$('#pwX').addEventListener('click',function(){ if(S.v==='today'){ toast(T.toastX[L()]); return; } S.of=true; render(); });
+$('#ofNo').addEventListener('click',function(){ S.of=false; render(); toast(T.toastX[L()]); });
+$('#ofDim').addEventListener('click',function(){ S.of=false; render(); });
+$$('#chips .chip').forEach(function(c){ c.addEventListener('click',function(e){ if(e.isTrusted) stopDemo(); if(c.dataset.go==='of') setVar('new'); go(c.dataset.go,false); if(c.dataset.go==='of') focusChg(1); }); });
+$('#aName').addEventListener('input',function(e){ S.name=e.target.value; render(); });
+
+function placeMarks(){
+  var pin=$('#phoneIn'), box=pin.getBoundingClientRect(), z=box.width/pin.offsetWidth||1, h='';
+  if(!pin.offsetParent||S.scr!=='pw'){ $('#mks').innerHTML=''; return; }
+  var b=$('#pwBody').getBoundingClientRect();
+  [1,2,3,4,5].forEach(function(n){
+    if(S.of&&n!==1) return;
+    var el=n===1?(S.of?$('#of'):$('#pwX')):document.querySelector('#pw [data-t="'+n+'"]'); if(!el||!el.offsetParent) return;
+    var r=el.getBoundingClientRect(); if(n!==1&&(r.top<b.top-6||r.top>b.bottom-14||r.left<box.left-4||r.left>box.right-10)) return;
+    var x=(r.right-box.left)/z-14, y=(r.top-box.top)/z-10; if(n===1&&!S.of){ x=(r.left-box.left)/z-28; y=(r.top-box.top)/z+4; }
+    if(n===2){ x=(r.right-box.left)/z-34; y=(r.top-box.top)/z+52; }
+    if(n===5){ x=(r.left-box.left)/z-12; }
+    h+='<span class="mk" data-mk="'+n+'" style="left:'+x+'px;top:'+y+'px">'+n+'</span>';
+  });
+  $('#mks').innerHTML=h;
+}
+$('#pwBody').addEventListener('scroll',placeMarks);
+window.addEventListener('resize',function(){ goSlide(S.slide,false); placeMarks(); });
+
+function seg(id,attr,fn){ $$('#'+id+' button').forEach(function(b){ b.addEventListener('click',function(e){ if(e.isTrusted) stopDemo(); fn(b.dataset[attr]); $$('#'+id+' button').forEach(function(x){ x.classList.toggle('on',x===b); }); render(); }); }); }
+seg('segVar','v',function(v){ S.v=v; S.slide=0; });
+seg('segTheme','th',function(v){ S.theme=v; });
+seg('segLang','l',function(v){ S.lang=v; });
+function setVar(v){ S.v=v; $$('#segVar button').forEach(function(x){ x.classList.toggle('on',x.dataset.v===v); }); }
+
+function focusChg(n){ var c=document.querySelector('.chg[data-c="'+n+'"]'), pc=$('.panelcol'); if(c){ if(pc.scrollHeight>pc.clientHeight+4) pc.scrollTop=Math.max(0,pc.scrollTop+c.getBoundingClientRect().top-pc.getBoundingClientRect().top-120); c.style.background='#FFF6D8'; setTimeout(function(){ c.style.background=''; },3200); } }
+$$('.chg').forEach(function(c){
+  var n=c.dataset.c;
+  c.addEventListener('mouseenter',function(){ if(S.v!=='new') return; $$('#phoneIn [data-t="'+n+'"]').forEach(function(e){ e.classList.add('hl'); }); var m=document.querySelector('[data-mk="'+n+'"]'); if(m) m.classList.add('hot'); });
+  c.addEventListener('mouseleave',function(){ $$('.hl').forEach(function(e){ e.classList.remove('hl'); }); $$('.mk.hot').forEach(function(e){ e.classList.remove('hot'); }); });
+});
+
+function showView(v){ if(v!=='pw') stopDemo(); $$('.view').forEach(function(x){ x.classList.remove('on'); }); $('#view-'+v).classList.add('on');
+  $$('.nav-links button').forEach(function(b){ b.classList.toggle('on',b.dataset.view===v); }); window.scrollTo(0,0); setTimeout(function(){ goSlide(S.slide,false); },30); requestAnimationFrame(placeMarks); }
+$$('[data-view]').forEach(function(b){ b.addEventListener('click',function(){ showView(b.dataset.view); }); });
+$$('.idea[data-hl]').forEach(function(b){ b.addEventListener('click',function(){
+  var n=+b.dataset.hl; showView('pw'); setVar('new'); go(n===1?'of':'pw',false);
+  setTimeout(function(){
+    if(n===3) goSlide(1,false);
+    var el=n===1?$('#of'):document.querySelector('#pw [data-t="'+n+'"]'), body=$('#pwBody');
+    if((n===4||n===5)&&el){ var off=el.getBoundingClientRect().top-body.getBoundingClientRect().top; body.scrollTop=Math.max(0,off-140); }
+    if(el&&n!==1){ el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+    focusChg(n); placeMarks(); },120); }); });
+
+/* ---- the 30-second walkthrough ---- */
+var demo={on:false,tok:0,t0:0,dur:24000,raf:0};
+function wait(ms,tok){ return new Promise(function(res,rej){ setTimeout(function(){ tok===demo.tok?res():rej('stop'); },ms); }); }
+function cap(txt){ $('#demoTxt').textContent=txt; }
+function fingerTo(el){ var r=el.getBoundingClientRect(), f=$('#finger'); f.style.left=(r.left+r.width/2+window.scrollX)+'px'; f.style.top=(r.top+r.height/2+window.scrollY)+'px'; f.classList.add('on'); }
+async function tap(sel,tok){ var el=typeof sel==='string'?$(sel):sel; if(!el) return; el.scrollIntoView({block:'nearest',behavior:'smooth'}); await wait(120,tok); fingerTo(el); await wait(380,tok); $('#finger').classList.add('press'); await wait(120,tok); $('#finger').classList.remove('press'); el.click(); await wait(160,tok); }
+async function scrollBody(to,tok){ var b=$('#pwBody'); b.scrollTo({top:to,behavior:'smooth'}); await wait(560,tok); b.scrollTop=to; placeMarks(); }
+function bar(){ if(!demo.on) return; var p=Math.min(1,(performance.now()-demo.t0)/demo.dur); $('#demoBar').style.width=(p*100)+'%'; demo.raf=requestAnimationFrame(bar); }
+async function startDemo(){
+  stopDemo(); var tok=++demo.tok; demo.on=true; demo.t0=performance.now();
+  showView('pw'); $('#phoneIn').classList.add('indemo');
+  setVar('new'); S.name='Julia'; S.intents=[]; S.follow=['w50r']; S.plan='y'; S.ovl=true; S.of=false; $('#aName').value='Julia'; go('intent',false);
+  $('#demoCap').classList.add('on'); bar();
+  try{
+    cap('Your onboarding asks why she came. She picks “Plan a trip” first.'); await wait(500,tok); await tap('#inOpts [data-k=trip]',tok); await wait(350,tok); await tap('#inOpts [data-k=save]',tok); await wait(400,tok); await tap('#inNext',tok); await wait(700,tok);
+    cap('Then which maps to follow. She adds La Liste and The World’s 50 Best Bars.'); await tap('#mpList [data-k=laliste]',tok); await wait(350,tok); await tap('#mpList [data-k=w50b]',tok); await wait(400,tok); await tap('#mpNext',tok); await wait(1300,tok);
+    cap('mapstr plus opens on her map, with the maps she just followed switched on.'); await tap('#ovsw',tok); await wait(600,tok); await tap('#ovsw',tok); await wait(1400,tok);
+    cap('The next slide answers why she came: proximity alerts and tables for her trip.'); goSlide(1,true); await wait(2400,tok);
+    cap('The annual plan says it saves 38%, and your 4M users sit beside the price.'); goSlide(0,true); await scrollBody(300,tok); await wait(2300,tok);
+    cap('Close it, and a sheet compares free with Plus and offers the monthly plan.'); await scrollBody(0,tok); await tap('#pwX',tok); await wait(2600,tok);
+    cap('A plan you already sell, at your own price. No fake discount, no timer.'); await wait(1900,tok);
+  }catch(e){ return; }
+  stopDemo();
+}
+function stopDemo(){ if(!demo.on) return; demo.on=false; demo.tok++; cancelAnimationFrame(demo.raf); $('#demoCap').classList.remove('on'); $('#finger').classList.remove('on'); $('#phoneIn').classList.remove('indemo'); requestAnimationFrame(placeMarks); }
+$('#demoBtn').addEventListener('click',startDemo);
+$('#heroDemo').addEventListener('click',startDemo);
+$('#phoneIn').addEventListener('pointerdown',function(e){ if(e.isTrusted) stopDemo(); });
+$$('.nav-links button').forEach(function(b){ b.addEventListener('click',stopDemo); });
+
+go('pw',false);
+window.addEventListener('load',placeMarks);
+if(document.fonts) document.fonts.ready.then(placeMarks);
+if(/[?&]open=(proto|pw)/.test(location.search)) showView('pw');
+</script>
+</body>
+</html>
